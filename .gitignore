@@ -133,3 +133,10 @@ mobile/.flutter-plugins-dependencies
 
 # Deployment folder (we'll commit the source, not the deployment copy)
 deployment/
+
+# Large files that exceed GitHub limits
+*.zip
+*.tar.gz
+*.rar
+*.7z
+flutter_sdk.zip
