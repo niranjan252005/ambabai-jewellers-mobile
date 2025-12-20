@@ -1,0 +1,71 @@
+name: Build Ambabai Jewellers APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Generate app icons
+      run: flutter pub run flutter_launcher_icons:main
+      
+    - name: Build APK
+      run: flutter build apk --release
+      
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: ambabai-jewellers-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: Ambabai Jewellers v1.0.${{ github.run_number }}
+        body: |
+          🎉 Ambabai Jewellers Mobile App
+          
+          ✅ Connected to live server: https://ambabai-jewellers.onrender.com
+          ✅ Dual email notifications working
+          ✅ All 6 requirements implemented
+          ✅ Custom branding and app icon
+          
+          📱 Features:
+          - Complete jewelry catalog
+          - Order management system
+          - User approval workflow
+          - Category management
+          - Profile editing
+          - WhatsApp sharing with photos
+          - Search with SKU codes
+          
+          📧 Admin notifications: barwadeniranjan@gmail.com, ambabaijewellers@gmail.com
+        files: build/app/outputs/flutter-apk/app-release.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
