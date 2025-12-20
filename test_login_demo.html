@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Demo - Admin vs User</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .login-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .admin { border-left: 5px solid #D4AF37; }
+        .user { border-left: 5px solid #2196F3; }
+        .credentials {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .features {
+            margin: 15px 0;
+        }
+        .feature {
+            padding: 5px 0;
+            color: #666;
+        }
+        .admin-feature {
+            color: #D4AF37;
+            font-weight: bold;
+        }
+        button {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .user-btn {
+            background: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Jewelry App - Login Demo</h1>
+    <p>Test both admin and user accounts to see the differences:</p>
+
+    <div class="login-card admin">
+        <h2>👨‍💼 Admin Account</h2>
+        <div class="credentials">
+            <strong>Email:</strong> admin@jewelry.com<br>
+            <strong>Password:</strong> admin123
+        </div>
+        <div class="features">
+            <h3>Admin Features:</h3>
+            <div class="admin-feature">✅ Dashboard with Admin Quick Actions</div>
+            <div class="admin-feature">✅ Add Jewelry Button (Multiple Locations)</div>
+            <div class="admin-feature">✅ Delete Items (Red delete button on cards)</div>
+            <div class="admin-feature">✅ Manage Users (Approve registrations)</div>
+            <div class="admin-feature">✅ View All Orders</div>
+            <div class="admin-feature">✅ Analytics & Statistics</div>
+            <div class="admin-feature">✅ Admin Tab in Bottom Navigation</div>
+        </div>
+        <button onclick="testLogin('admin@jewelry.com', 'admin123')">Test Admin Login</button>
+    </div>
+
+    <div class="login-card user">
+        <h2>👤 User Account</h2>
+        <div class="credentials">
+            <strong>Email:</strong> user@test.com<br>
+            <strong>Password:</strong> user123
+        </div>
+        <div class="features">
+            <h3>User Features:</h3>
+            <div class="feature">✅ Dashboard with Shop Info</div>
+            <div class="feature">✅ Browse Gold/Silver Collections</div>
+            <div class="feature">✅ View Item Details</div>
+            <div class="feature">✅ Place Orders</div>
+            <div class="feature">✅ View Own Orders</div>
+            <div class="feature">❌ No Add/Delete Item Buttons</div>
+            <div class="feature">❌ No Admin Panel Access</div>
+        </div>
+        <button class="user-btn" onclick="testLogin('user@test.com', 'user123')">Test User Login</button>
+    </div>
+
+    <div class="login-card">
+        <h2>📍 Add Item Button Locations (Admin Only)</h2>
+        <div class="features">
+            <div class="admin-feature">1. Dashboard → "Admin Quick Actions" → "Add Jewelry" (Green Card)</div>
+            <div class="admin-feature">2. Gold/Silver Collection → "+" Button (Top Right)</div>
+            <div class="admin-feature">3. Bottom Navigation → "Admin" Tab → "Add Jewelry"</div>
+            <div class="admin-feature">4. Jewelry Cards → Red Delete Button (Admin Only)</div>
+        </div>
+    </div>
+
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        async function testLogin(email, password) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Testing login...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="login-card" style="background: #e8f5e8;">
+                            <h3>✅ Login Successful!</h3>
+                            <p><strong>Username:</strong> ${data.user.username}</p>
+                            <p><strong>Email:</strong> ${data.user.email}</p>
+                            <p><strong>Role:</strong> ${data.user.role}</p>
+                            <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                            ${data.user.role === 'admin' ? 
+                                '<p style="color: #D4AF37; font-weight: bold;">🎉 Admin access granted! You can add/delete items.</p>' : 
+                                '<p style="color: #2196F3;">👤 User access - Browse and order items only.</p>'
+                            }
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="login-card" style="background: #ffebee;">
+                            <h3>❌ Login Failed</h3>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="login-card" style="background: #ffebee;">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

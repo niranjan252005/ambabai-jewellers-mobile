@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jewelry App - Web Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #D4AF37;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .login-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .login-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #D4AF37;
+        }
+        
+        .btn {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #B8941F;
+        }
+        
+        .jewelry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .jewelry-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .jewelry-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .jewelry-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
+        
+        .jewelry-card-content {
+            padding: 20px;
+        }
+        
+        .jewelry-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .jewelry-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .jewelry-card-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #D4AF37;
+        }
+        
+        .stock {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .category {
+            background: #f0f0f0;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            color: #D4AF37;
+            font-size: 3em;
+        }
+        
+        .jewelry-card img {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .jewelry-card img:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        
+        .image-zoom-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .zoom-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💎 Jewelry Store</h1>
+            <p>Beautiful jewelry collection with admin management</p>
+        </div>
+        
+        <div class="login-section" id="login-section">
+            <h2>Login to View Dashboard</h2>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" value="admin@jewelry.com" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" value="admin123" placeholder="Enter password">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px;">
+                <h4>🧪 Quick Tests:</h4>
+                <button onclick="window.open('test_add_item.html', '_blank')" style="background: #28a745; color: white; border: none; padding: 8px 15px; margin: 5px; border-radius: 4px; cursor: pointer;">
+                    🔧 Test Features
+                </button>
+                <p style="font-size: 12px; color: #666; margin: 10px 0 0 0;">
+                    Open test page to verify add item and image zoom functionality
+                </p>
+            </div>
+        </div>
+        
+        <div class="dashboard-section" id="dashboard-section" style="display: none;">
+            <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                <h2>🏪 Luxury Jewelry Store</h2>
+                <p style="color: #666; margin-bottom: 20px;">Exquisite Collection Since 1985 • 📍 New York, USA • ⭐ 4.9 Rating</p>
+                <p style="color: #666;">Discover our premium collection of handcrafted jewelry made with the finest materials. Each piece tells a story of elegance and timeless beauty.</p>
+            </div>
+            
+            <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+                <button class="material-btn gold-btn" onclick="showMaterial('gold')" style="flex: 1; padding: 40px 20px; background: linear-gradient(135deg, #FFD700, #B8860B); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(255,215,0,0.3);">
+                    🏆 Gold Collection
+                    <div style="font-size: 14px; font-weight: normal; margin-top: 5px;">Premium gold jewelry</div>
+                </button>
+                <button class="material-btn silver-btn" onclick="showMaterial('silver')" style="flex: 1; padding: 40px 20px; background: linear-gradient(135deg, #C0C0C0, #808080); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(192,192,192,0.3);">
+                    🥈 Silver Collection
+                    <div style="font-size: 14px; font-weight: normal; margin-top: 5px;">Elegant silver pieces</div>
+                </button>
+            </div>
+            
+            <button class="btn" onclick="logout()" style="background: #666;">Logout</button>
+        </div>
+        
+        <div id="message"></div>
+        <div id="jewelry-container"></div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let currentUser = null;
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    messageDiv.innerHTML = `<div class="success">✅ Logged in as ${data.user.username} (${data.user.role.toUpperCase()})</div>`;
+                    showDashboard();
+                } else {
+                    messageDiv.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        function showDashboard() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+            
+            // Show admin features if user is admin
+            if (currentUser && currentUser.role === 'admin') {
+                document.getElementById('dashboard-section').innerHTML += `
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3 style="color: #856404; margin: 0 0 10px 0;">👨‍💼 Admin Features Available</h3>
+                        <p style="color: #856404; margin: 0;">You have admin access! You can add, edit, and delete jewelry items.</p>
+                        <div style="margin-top: 15px;">
+                            <button onclick="showAddItemForm()" style="margin: 5px; background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                                ➕ Add New Item
+                            </button>
+                            <button onclick="alert('In the mobile app, you would see Add Item buttons in:\\n\\n1. Dashboard Admin Quick Actions\\n2. Gold/Silver collection pages (+ button)\\n3. Admin tab in bottom navigation\\n4. Delete buttons on jewelry cards')" style="margin: 5px; background: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                                📍 Show Button Locations
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('jewelry-container').innerHTML = '';
+            document.getElementById('message').innerHTML = '';
+            
+            // Reset dashboard content
+            document.getElementById('dashboard-section').innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px;">
+                    <h2>🏪 Luxury Jewelry Store</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Exquisite Collection Since 1985 • 📍 New York, USA • ⭐ 4.9 Rating</p>
+                    <p style="color: #666;">Discover our premium collection of handcrafted jewelry made with the finest materials. Each piece tells a story of elegance and timeless beauty.</p>
+                </div>
+                
+                <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+                    <button class="material-btn gold-btn" onclick="showMaterial('gold')" style="flex: 1; padding: 40px 20px; background: linear-gradient(135deg, #FFD700, #B8860B); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(255,215,0,0.3);">
+                        🏆 Gold Collection
+                        <div style="font-size: 14px; font-weight: normal; margin-top: 5px;">Premium gold jewelry</div>
+                    </button>
+                    <button class="material-btn silver-btn" onclick="showMaterial('silver')" style="flex: 1; padding: 40px 20px; background: linear-gradient(135deg, #C0C0C0, #808080); color: white; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 30px rgba(192,192,192,0.3);">
+                        🥈 Silver Collection
+                        <div style="font-size: 14px; font-weight: normal; margin-top: 5px;">Elegant silver pieces</div>
+                    </button>
+                </div>
+                
+                <button class="btn" onclick="logout()" style="background: #666;">Logout</button>
+            `;
+        }
+        
+        function showImageZoom(imageUrl, itemName) {
+            const overlay = document.createElement('div');
+            overlay.className = 'image-zoom-overlay';
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            };
+            
+            // Use placeholder if no image URL
+            const displayUrl = imageUrl || `https://via.placeholder.com/600x600/D4AF37/FFFFFF?text=${encodeURIComponent(itemName)}`;
+            
+            overlay.innerHTML = `
+                <button class="zoom-close" onclick="document.body.removeChild(this.parentElement)">×</button>
+                <img src="${displayUrl}" alt="${itemName}" class="image-zoom-content" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 10px; text-align: center;">
+                    <h3 style="margin: 0; color: #D4AF37;">${itemName}</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;">Click outside to close</p>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            
+            // Prevent body scroll when overlay is open
+            document.body.style.overflow = 'hidden';
+            
+            // Restore body scroll when overlay is closed
+            overlay.addEventListener('remove', () => {
+                document.body.style.overflow = 'auto';
+            });
+        }
+        
+        function showAddItemForm() {
+            const formHtml = `
+                <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                    <h2 style="color: #D4AF37; margin-bottom: 20px;">📸 Add New Jewelry Item</h2>
+                    
+                    <!-- Photo Upload Section -->
+                    <div style="margin-bottom: 20px; padding: 20px; border: 2px dashed #D4AF37; border-radius: 10px; text-align: center; background: #fafafa;">
+                        <div id="imagePreview" style="display: none; margin-bottom: 15px;">
+                            <img id="previewImg" style="max-width: 200px; max-height: 200px; border-radius: 10px; object-fit: cover;">
+                            <div style="margin-top: 10px;">
+                                <button type="button" onclick="removeImage()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Remove Photo</button>
+                            </div>
+                        </div>
+                        <div id="uploadPrompt">
+                            <div style="font-size: 48px; color: #D4AF37; margin-bottom: 10px;">📷</div>
+                            <h3 style="color: #333; margin-bottom: 10px;">Add Jewelry Photo</h3>
+                            <p style="color: #666; margin-bottom: 15px;">Upload a high-quality image of your jewelry item</p>
+                            <input type="file" id="itemImage" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                            <button type="button" onclick="document.getElementById('itemImage').click()" style="background: #D4AF37; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                                📁 Choose Photo
+                            </button>
+                            <div style="margin-top: 10px; font-size: 12px; color: #888;">
+                                Supported: JPG, PNG, GIF • Max size: 5MB • Recommended: 800x800px
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form id="addItemForm" style="display: grid; gap: 15px;">
+                        <!-- Basic Information -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <input type="text" id="itemName" placeholder="Item Name *" required style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <input type="text" id="itemBrand" placeholder="Brand" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <textarea id="itemDescription" placeholder="Description" rows="3" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+                        
+                        <!-- Price and Category -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <input type="number" id="itemPrice" placeholder="Price ($) *" required step="0.01" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <select id="itemCategory" required style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                <option value="">Select Category *</option>
+                                <option value="Rings">💍 Rings</option>
+                                <option value="Necklaces">📿 Necklaces</option>
+                                <option value="Earrings">👂 Earrings</option>
+                                <option value="Bracelets">📿 Bracelets</option>
+                                <option value="Watches">⌚ Watches</option>
+                                <option value="Pendants">🔸 Pendants</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Material and Weight -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <select id="itemMaterial" required style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                                <option value="">Select Material *</option>
+                                <option value="18k Gold">🏆 18k Gold</option>
+                                <option value="14k Gold">🥇 14k Gold</option>
+                                <option value="Sterling Silver">🥈 Sterling Silver</option>
+                                <option value="Rose Gold">🌹 Rose Gold</option>
+                                <option value="White Gold">⚪ White Gold</option>
+                                <option value="Platinum">💎 Platinum</option>
+                            </select>
+                            <input type="number" id="itemWeight" placeholder="Weight (grams) *" required step="0.1" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <!-- Stock and Size -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <input type="number" id="itemStock" placeholder="Stock Quantity *" required style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                            <input type="text" id="itemSize" placeholder="Size (optional)" style="padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <!-- Melting Data (Optional) -->
+                        <details style="border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
+                            <summary style="cursor: pointer; font-weight: bold; color: #D4AF37;">⚖️ Melting Data (Optional)</summary>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                <input type="number" id="itemKarat" placeholder="Karat (e.g., 18)" step="1" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <input type="text" id="itemPurity" placeholder="Purity (e.g., 750)" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <input type="number" id="meltingWeight" placeholder="Melting Weight (g)" step="0.1" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <input type="number" id="meltingValue" placeholder="Melting Value ($)" step="0.01" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </details>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="submit" class="btn" style="flex: 1; padding: 15px; font-size: 16px; font-weight: bold;">
+                                ✨ Add Jewelry Item
+                            </button>
+                            <button type="button" onclick="document.getElementById('jewelry-container').innerHTML=''" class="btn" style="flex: 1; background: #666; padding: 15px; font-size: 16px;">
+                                ❌ Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.getElementById('jewelry-container').innerHTML = formHtml;
+            
+            document.getElementById('addItemForm').onsubmit = async (e) => {
+                e.preventDefault();
+                await addJewelryItem();
+            };
+        }
+        
+        // Photo upload functions
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('❌ Please select a valid image file (JPG, PNG, GIF)');
+                    input.value = '';
+                    return;
+                }
+                
+                // Validate file size (5MB max)
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                if (file.size > maxSize) {
+                    alert('❌ File size must be less than 5MB');
+                    input.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('previewImg');
+                    const imagePreview = document.getElementById('imagePreview');
+                    const uploadPrompt = document.getElementById('uploadPrompt');
+                    
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadPrompt.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeImage() {
+            const input = document.getElementById('itemImage');
+            const imagePreview = document.getElementById('imagePreview');
+            const uploadPrompt = document.getElementById('uploadPrompt');
+            
+            input.value = '';
+            imagePreview.style.display = 'none';
+            uploadPrompt.style.display = 'block';
+        }
+
+        async function addJewelryItem() {
+            const formData = new FormData();
+            
+            // Add all form fields
+            formData.append('name', document.getElementById('itemName').value);
+            formData.append('description', document.getElementById('itemDescription').value);
+            formData.append('price', document.getElementById('itemPrice').value);
+            formData.append('category', document.getElementById('itemCategory').value);
+            formData.append('material', document.getElementById('itemMaterial').value);
+            formData.append('weight', document.getElementById('itemWeight').value);
+            formData.append('stock_quantity', document.getElementById('itemStock').value);
+            
+            // Add optional fields
+            const brand = document.getElementById('itemBrand').value;
+            if (brand) formData.append('brand', brand);
+            
+            const size = document.getElementById('itemSize').value;
+            if (size) formData.append('size', size);
+            
+            // Add melting data if provided
+            const karat = document.getElementById('itemKarat').value;
+            if (karat) formData.append('karat', karat);
+            
+            const purity = document.getElementById('itemPurity').value;
+            if (purity) formData.append('purity', purity);
+            
+            const meltingWeight = document.getElementById('meltingWeight').value;
+            if (meltingWeight) formData.append('melting_weight', meltingWeight);
+            
+            const meltingValue = document.getElementById('meltingValue').value;
+            if (meltingValue) formData.append('melting_value', meltingValue);
+            
+            // Add image file if selected
+            const imageInput = document.getElementById('itemImage');
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('/api/jewelry', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Item added successfully! ID: ' + data.id + (data.sku ? ' | SKU: ' + data.sku : ''));
+                    document.getElementById('jewelry-container').innerHTML = '';
+                    // Refresh the current view if showing items
+                    showMaterial('gold'); // Show gold collection to see the new item
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to add item'));
+                    console.error('Server error:', data);
+                }
+            } catch (error) {
+                alert('❌ Network error: ' + error.message);
+                console.error('Network error:', error);
+            }
+        }
+
+        async function showMaterial(material) {
+            const container = document.getElementById('jewelry-container');
+            container.innerHTML = '<div class="loading">Loading jewelry items...</div>';
+            
+            try {
+                const response = await fetch('/api/jewelry', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const jewelry = await response.json();
+                
+                if (response.ok) {
+                    const filteredItems = jewelry.filter(item => 
+                        item.material.toLowerCase().includes(material.toLowerCase())
+                    );
+                    
+                    if (filteredItems.length === 0) {
+                        container.innerHTML = `<div class="loading">No ${material} jewelry found.</div>`;
+                        return;
+                    }
+                    
+                    // Group by category
+                    const categories = {};
+                    filteredItems.forEach(item => {
+                        if (!categories[item.category]) {
+                            categories[item.category] = [];
+                        }
+                        categories[item.category].push(item);
+                    });
+                    
+                    let html = `<h2>${material.charAt(0).toUpperCase() + material.slice(1)} Collection (${filteredItems.length} items)</h2>`;
+                    
+                    Object.keys(categories).forEach(category => {
+                        const items = categories[category];
+                        html += `
+                            <div style="margin-bottom: 30px;">
+                                <h3 style="color: #D4AF37; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 8px;">
+                                    ${category} (${items.length} items)
+                                </h3>
+                                <div class="jewelry-grid">
+                                    ${items.map(item => `
+                                        <div class="jewelry-card">
+                                            ${item.image_url ? 
+                                                `<img src="${item.image_url}" alt="${item.name}" onclick="showImageZoom('${item.image_url}', '${item.name}')" style="cursor: pointer;">` : 
+                                                `<div class="no-image" onclick="showImageZoom('https://via.placeholder.com/400x400/D4AF37/FFFFFF?text=${encodeURIComponent(item.name)}', '${item.name}')" style="cursor: pointer;">💎</div>`
+                                            }
+                                            <div class="jewelry-card-content">
+                                                <div class="category">${item.category}</div>
+                                                <h3>${item.name}</h3>
+                                                <p>${item.description}</p>
+                                                <div class="jewelry-card-details">
+                                                    <span class="price">$${item.price.toFixed(2)}</span>
+                                                    <span class="stock">${item.stock_quantity} in stock</span>
+                                                </div>
+                                                <p><strong>Material:</strong> ${item.material}</p>
+                                                <p><strong>Weight:</strong> ${item.weight}g</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div class="error">❌ Failed to load jewelry: ${jewelry.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadJewelry() {
+            const container = document.getElementById('jewelry-container');
+            container.innerHTML = '<div class="loading">Loading jewelry items...</div>';
+            
+            try {
+                const response = await fetch('/api/jewelry', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const jewelry = await response.json();
+                
+                if (response.ok) {
+                    displayJewelry(jewelry);
+                } else {
+                    container.innerHTML = `<div class="error">❌ Failed to load jewelry: ${jewelry.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayJewelry(jewelry) {
+            const container = document.getElementById('jewelry-container');
+            
+            if (jewelry.length === 0) {
+                container.innerHTML = '<div class="loading">No jewelry items found.</div>';
+                return;
+            }
+            
+            const jewelryHTML = jewelry.map(item => `
+                <div class="jewelry-card">
+                    ${item.image_url ? 
+                        `<img src="${item.image_url}" alt="${item.name}">` : 
+                        `<div class="no-image">💎</div>`
+                    }
+                    <div class="jewelry-card-content">
+                        <div class="category">${item.category}</div>
+                        <h3>${item.name}</h3>
+                        <p>${item.description}</p>
+                        <div class="jewelry-card-details">
+                            <span class="price">$${item.price.toFixed(2)}</span>
+                            <span class="stock">${item.stock_quantity} in stock</span>
+                        </div>
+                        <p><strong>Material:</strong> ${item.material}</p>
+                        <p><strong>Weight:</strong> ${item.weight}g</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Group by material
+            const goldItems = jewelry.filter(item => item.material.toLowerCase().includes('gold'));
+            const silverItems = jewelry.filter(item => item.material.toLowerCase().includes('silver'));
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 30px;">
+                    <h2>🏆 Gold Collection (${goldItems.length} items)</h2>
+                    <div class="jewelry-grid">${goldItems.map(item => `
+                        <div class="jewelry-card">
+                            ${item.image_url ? 
+                                `<img src="${item.image_url}" alt="${item.name}">` : 
+                                `<div class="no-image">💎</div>`
+                            }
+                            <div class="jewelry-card-content">
+                                <div class="category">${item.category}</div>
+                                <h3>${item.name}</h3>
+                                <p>${item.description}</p>
+                                <div class="jewelry-card-details">
+                                    <span class="price">$${item.price.toFixed(2)}</span>
+                                    <span class="stock">${item.stock_quantity} in stock</span>
+                                </div>
+                                <p><strong>Material:</strong> ${item.material}</p>
+                                <p><strong>Weight:</strong> ${item.weight}g</p>
+                            </div>
+                        </div>
+                    `).join('')}</div>
+                </div>
+                
+                <div>
+                    <h2>🥈 Silver Collection (${silverItems.length} items)</h2>
+                    <div class="jewelry-grid">${silverItems.map(item => `
+                        <div class="jewelry-card">
+                            ${item.image_url ? 
+                                `<img src="${item.image_url}" alt="${item.name}">` : 
+                                `<div class="no-image">💎</div>`
+                            }
+                            <div class="jewelry-card-content">
+                                <div class="category">${item.category}</div>
+                                <h3>${item.name}</h3>
+                                <p>${item.description}</p>
+                                <div class="jewelry-card-details">
+                                    <span class="price">$${item.price.toFixed(2)}</span>
+                                    <span class="stock">${item.stock_quantity} in stock</span>
+                                </div>
+                                <p><strong>Material:</strong> ${item.material}</p>
+                                <p><strong>Weight:</strong> ${item.weight}g</p>
+                            </div>
+                        </div>
+                    `).join('')}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
