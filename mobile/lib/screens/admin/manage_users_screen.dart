@@ -42,24 +42,46 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
     }
   }
 
-  Future<void> _approveUser(User user) async {
-    final result = await ApiService.approveUser(user.id);
-    
-    if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message']),
-          backgroundColor: Colors.green,
-        ),
-      );
-      _loadUsers(); // Refresh the list
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['error']),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<void> _deleteUser(User user) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete User'),
+        content: Text('Are you sure you want to delete ${user.username}? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final result = await ApiService.deleteUser(user.id);
+      
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadUsers(); // Refresh the list
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error']),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -184,17 +206,15 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: user.isApproved 
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
+                        color: Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        user.isApproved ? 'APPROVED' : 'PENDING',
+                        'ACTIVE',
                         style: GoogleFonts.lato(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: user.isApproved ? Colors.green : Colors.orange,
+                          color: Colors.green,
                         ),
                       ),
                     ),
@@ -202,17 +222,17 @@ class _ManageUsersScreenState extends State<ManageUsersScreen> {
                 ),
               ],
             ),
-            if (!user.isApproved && !user.isAdmin) ...[
+            if (!user.isAdmin) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _approveUser(user),
+                  onPressed: () => _deleteUser(user),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Approve User'),
+                  child: const Text('Delete User'),
                 ),
               ),
             ],

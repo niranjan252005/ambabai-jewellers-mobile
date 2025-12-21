@@ -165,21 +165,21 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> approveUser(int userId) async {
+  static Future<Map<String, dynamic>> deleteUser(int userId) async {
     try {
-      print('🌐 Approving user online: $userId');
+      print('🗑️ Deleting user: $userId');
       
-      // ONLINE-ONLY user approval
+      // ONLINE-ONLY user deletion
       final headers = await AuthService.getAuthHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/admin/approve-user/$userId'),
+      final response = await http.delete(
+        Uri.parse('$baseUrl/admin/delete-user/$userId'),
         headers: headers,
       ).timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('✅ User approved online');
-        return {'success': true, 'message': 'User approved successfully! They can now login.'};
+        print('✅ User deleted successfully');
+        return {'success': true, 'message': 'User deleted successfully!'};
       } else if (response.statusCode == 401) {
         return {'success': false, 'error': 'Authentication required. Please login again.'};
       } else {
@@ -187,10 +187,10 @@ class ApiService {
         return {'success': false, 'error': error['error'] ?? 'Server error'};
       }
     } catch (e) {
-      print('❌ Error approving user: $e');
+      print('❌ Error deleting user: $e');
       return {
         'success': false, 
-        'error': 'Internet connection required to approve users. Please check your connection.'
+        'error': 'Internet connection required to delete users. Please check your connection.'
       };
     }
   }

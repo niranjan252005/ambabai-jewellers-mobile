@@ -1034,7 +1034,7 @@
                     </button>
                 </div>
                 <div class="info" style="margin-top: 20px;">
-                    <p><strong>New Customer?</strong> Click "New Customer" tab above to register. Your account will be approved by our admin within 24 hours.</p>
+                    <p><strong>New Customer?</strong> Click "New Customer" tab above to register. You can login immediately after registration!</p>
                 </div>
             </div>
             
@@ -1078,8 +1078,8 @@
                     <p><strong>📋 Registration Process:</strong></p>
                     <p>1. Fill the form and submit<br>
                     2. Admin will receive notification at barwadeniranjan@gmail.com<br>
-                    3. Your account will be approved within 24 hours<br>
-                    4. You'll receive confirmation and can start browsing</p>
+                    3. You can login immediately after registration!<br>
+                    4. Start browsing and shopping right away</p>
                 </div>
             </div>
             
@@ -1100,7 +1100,7 @@
                     </button>
                 </div>
                 <div class="info" style="margin-top: 20px;">
-                    <p><strong>Admin Features:</strong> Manage jewelry items, approve customers, view orders, and access analytics.</p>
+                    <p><strong>Admin Features:</strong> Manage jewelry items, manage customers, view orders, and access analytics.</p>
                 </div>
             </div>
         </div>
@@ -1316,11 +1316,11 @@
                         <div class="success">
                             ✅ <strong>Registration Successful!</strong><br>
                             Welcome ${name}! Your account has been created and is pending admin approval.<br>
-                            <strong>Next Steps:</strong><br>
+                            <strong>Account Created Successfully!</strong><br>
                             • Admin notification sent to barwadeniranjan@gmail.com<br>
-                            • You'll be approved within 24 hours<br>
-                            • Check your email for confirmation<br>
-                            • You can then login to browse our collection
+                            • You can login immediately!<br>
+                            • Start browsing our jewelry collection<br>
+                            • Place orders and enjoy shopping
                         </div>
                     `;
                     
@@ -1335,7 +1335,7 @@
                     // Switch to login form after 3 seconds
                     setTimeout(() => {
                         showAuthForm('login');
-                        messageDiv.innerHTML = `<div class="info">💡 You can now login once your account is approved by admin</div>`;
+                        messageDiv.innerHTML = `<div class="info">💡 You can now login with your new account!</div>`;
                     }, 5000);
                     
                 } else {
@@ -1436,8 +1436,8 @@
                         <button onclick="showAddItemForm()" class="btn btn-success">
                             ➕ Add New Jewelry Item
                         </button>
-                        <button onclick="showPendingApprovals()" class="btn" style="background: #17a2b8;">
-                            👥 Manage Customer Approvals
+                        <button onclick="showAllUsers()" class="btn" style="background: #17a2b8;">
+                            👥 Manage Users
                         </button>
                         <button onclick="showAllCustomers()" class="btn" style="background: #6f42c1;">
                             📋 View All Customers
@@ -2424,10 +2424,9 @@
                                         <p><strong>Registered:</strong> ${new Date(user.created_at).toLocaleString()}</p>
                                     </div>
                                     <div style="display: flex; gap: 10px;">
-                                        <button onclick="approveUser(${user.id}, '${user.username}')" class="btn btn-success">
-                                            ✅ Approve
+                                        <button onclick="deleteUser(${user.id}, '${user.username}')" class="btn btn-danger">
+                                            🗑️ Delete User
                                         </button>
-                                        <button onclick="rejectUser(${user.id}, '${user.username}')" class="btn btn-danger">
                                             ❌ Reject
                                         </button>
                                     </div>
@@ -2454,10 +2453,15 @@
         }
         
         // Approve user
-        async function approveUser(userId, username) {
+        // Delete user
+        async function deleteUser(userId, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                return;
+            }
+            
             try {
-                const response = await fetch(`/api/admin/approve-user/${userId}`, {
-                    method: 'POST',
+                const response = await fetch(`/api/admin/delete-user/${userId}`, {
+                    method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${authToken}`
                     }
@@ -2467,11 +2471,11 @@
                 
                 if (response.ok) {
                     document.getElementById('message').innerHTML = `
-                        <div class="success">✅ Customer "${username}" has been approved successfully!</div>
+                        <div class="success">✅ User "${username}" has been deleted successfully!</div>
                     `;
-                    showPendingApprovals(); // Refresh the list
+                    showAllUsers(); // Refresh the list
                 } else {
-                    document.getElementById('message').innerHTML = `<div class="error">❌ Failed to approve user: ${data.error}</div>`;
+                    document.getElementById('message').innerHTML = `<div class="error">❌ Failed to delete user: ${data.error}</div>`;
                 }
             } catch (error) {
                 document.getElementById('message').innerHTML = `<div class="error">❌ Network error: ${error.message}</div>`;

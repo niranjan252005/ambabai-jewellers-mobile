@@ -216,24 +216,25 @@ app.post('/api/register', async (req, res) => {
         );
       });
     } else {
-      // Regular user registration
+      // Regular user registration - auto-approved
       const hashedPassword = await bcrypt.hash(password, 10);
       
       db.run(
-        'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-        [username, email, hashedPassword],
+        'INSERT INTO users (username, email, password, is_approved) VALUES (?, ?, ?, ?)',
+        [username, email, hashedPassword, 1], // Auto-approve new users
         function(err) {
           if (err) {
             return res.status(400).json({ error: 'User already exists' });
           }
           
-          // Send notification to admin
+          // Send notification to admin about new user
           sendAdminNotification('new_user_registration', {
             username,
-            email
+            email,
+            message: 'New user registered and can login immediately'
           });
           
-          res.json({ message: 'User registered successfully. Awaiting admin approval.' });
+          res.json({ message: 'Account created successfully! You can now login.' });
         }
       );
     }
@@ -250,10 +251,7 @@ app.post('/api/login', (req, res) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
     
-    if (user.role === 'user' && !user.is_approved) {
-      return res.status(403).json({ error: 'Account not approved by admin' });
-    }
-    
+    // Remove approval check - all users can login immediately
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
       return res.status(400).json({ error: 'Invalid credentials' });
@@ -737,33 +735,54 @@ app.get('/api/users', authenticateToken, requireAdmin, (req, res) => {
 
 // Admin notification routes
 app.get('/api/admin/notifications', authenticateToken, requireAdmin, (req, res) => {
-  // Get pending user approvals
-  db.all('SELECT * FROM users WHERE is_approved = 0 AND role = "user" ORDER BY created_at DESC', (err, pendingUsers) => {
+  // Get all users for management (no pending approval needed)
+  db.all('SELECT * FROM users WHERE role = "user" ORDER BY created_at DESC', (err, users) => {
     if (err) {
       return res.status(500).json({ error: 'Server error' });
     }
     
     res.json({
-      pendingUsers: pendingUsers,
-      count: pendingUsers.length
+      users: users,
+      count: users.length,
+      message: 'All users can login immediately. You can delete users if needed.'
     });
   });
 });
 
-// Approve user route
-app.post('/api/admin/approve-user/:id', authenticateToken, requireAdmin, (req, res) => {
+// Delete user route (replaces approve user)
+app.delete('/api/admin/delete-user/:id', authenticateToken, requireAdmin, (req, res) => {
   const userId = req.params.id;
   
-  db.run('UPDATE users SET is_approved = 1 WHERE id = ?', [userId], function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Server error' });
-    }
-    
-    if (this.changes === 0) {
+  // Prevent admin from deleting themselves
+  if (parseInt(userId) === req.user.id) {
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+  }
+  
+  // Get user info before deletion for notification
+  db.get('SELECT username, email FROM users WHERE id = ?', [userId], (err, user) => {
+    if (err || !user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json({ message: 'User approved successfully' });
+    // Delete the user
+    db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Server error' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Send notification about user deletion
+      sendAdminNotification('user_deleted', {
+        username: user.username,
+        email: user.email,
+        deletedBy: req.user.username
+      });
+      
+      res.json({ message: 'User deleted successfully' });
+    });
   });
 });
 
@@ -782,18 +801,18 @@ app.get('/api/test-notification', (req, res) => {
   });
 });
 
-// Debug route to check pending users (no auth required for debugging)
-app.get('/api/debug/pending-users', (req, res) => {
-  db.all('SELECT * FROM users WHERE is_approved = 0 AND role = "user" ORDER BY created_at DESC', (err, users) => {
+// Debug route to check all users (no auth required for debugging)
+app.get('/api/debug/all-users', (req, res) => {
+  db.all('SELECT id, username, email, role, is_approved, created_at FROM users ORDER BY created_at DESC', (err, users) => {
     if (err) {
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
     
     res.json({
-      pendingUsers: users,
+      users: users,
       count: users.length,
-      allUsers: 'Visit /api/debug/all-users to see all users',
-      adminEmail: ADMIN_EMAIL
+      message: 'All users can login immediately. No approval needed.',
+      adminEmails: ADMIN_EMAILS
     });
   });
 });
