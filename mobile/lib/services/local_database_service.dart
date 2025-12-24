@@ -322,14 +322,13 @@ class LocalDatabaseService {
         'email': email.toLowerCase(), // Store email in lowercase
         'password': hashedPassword,
         'role': role,
-        'is_approved': role == 'admin' ? 1 : 0,
+        'is_approved': 1, // Auto-approve all users
       });
 
       return {
         'success': true,
-        'message': role == 'admin'
-            ? 'Admin account created successfully'
-            : 'Account created successfully. Please wait for admin approval.',
+        'message':
+            'Account created successfully! You can now login immediately.',
       };
     } catch (e) {
       return {
@@ -360,11 +359,9 @@ class LocalDatabaseService {
 
       final userData = result.first;
 
-      if (userData['is_approved'] == 0 && userData['role'] != 'admin') {
-        return {
-          'success': false,
-          'error': 'Your account is pending admin approval',
-        };
+      if (userData['role'] != 'admin') {
+        // All users are auto-approved now - no approval check needed
+        print('✅ User login successful (auto-approved)');
       }
 
       return {

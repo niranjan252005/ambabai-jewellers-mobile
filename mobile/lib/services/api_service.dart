@@ -176,7 +176,7 @@ class ApiService {
       final headers = await AuthService.getAuthHeaders();
       final response = await http
           .delete(
-            Uri.parse('$baseUrl/admin/delete-user/$userId'),
+            Uri.parse('$baseUrl/users/$userId'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 15));
