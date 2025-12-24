@@ -172,33 +172,62 @@ class ApiService {
     try {
       print('🗑️ Deleting user: $userId');
 
-      // ONLINE-ONLY user deletion
+      // ONLINE-ONLY user deletion with retry logic
       final headers = await AuthService.getAuthHeaders();
-      final response = await http
-          .delete(
-            Uri.parse('$baseUrl/users/$userId'),
-            headers: headers,
-          )
-          .timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 200) {
+      http.Response? response;
+      int retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        try {
+          response = await http
+              .delete(
+                Uri.parse('$baseUrl/users/$userId'),
+                headers: headers,
+              )
+              .timeout(const Duration(seconds: 30)); // Increased timeout
+
+          break; // Success, exit retry loop
+        } catch (e) {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            print(
+                '⏳ Server might be waking up, retrying delete... ($retryCount/$maxRetries)');
+            await Future.delayed(
+                const Duration(seconds: 5)); // Wait 5 seconds before retry
+          } else {
+            print('❌ All delete attempts failed: $e');
+            break;
+          }
+        }
+      }
+
+      if (response != null && response.statusCode == 200) {
         print('✅ User deleted successfully');
         return {'success': true, 'message': 'User deleted successfully!'};
-      } else if (response.statusCode == 401) {
+      } else if (response != null && response.statusCode == 401) {
         return {
           'success': false,
           'error': 'Authentication required. Please login again.'
         };
-      } else {
+      } else if (response != null) {
         final error = json.decode(response.body);
         return {'success': false, 'error': error['error'] ?? 'Server error'};
       }
+
+      // If we reach here, all attempts failed
+      return {
+        'success': false,
+        'error':
+            'Unable to connect to server. Please check your internet connection and try again. The server might be starting up, please wait a moment and retry.'
+      };
     } catch (e) {
       print('❌ Error deleting user: $e');
       return {
         'success': false,
         'error':
-            'Internet connection required to delete users. Please check your connection.'
+            'Delete failed. Please check your internet connection and try again.'
       };
     }
   }

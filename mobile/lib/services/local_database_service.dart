@@ -358,11 +358,7 @@ class LocalDatabaseService {
       }
 
       final userData = result.first;
-
-      if (userData['role'] != 'admin') {
-        // All users are auto-approved now - no approval check needed
-        print('✅ User login successful (auto-approved)');
-      }
+      print('✅ Local database login successful for: ${userData['email']}');
 
       return {
         'success': true,

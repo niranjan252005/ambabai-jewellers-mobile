@@ -28,7 +28,7 @@ class AuthService {
     try {
       print('🌐 Attempting online login for: $email');
 
-      // Try online login first with retry logic
+      // ONLINE-FIRST login with retry logic for server wake-up
       http.Response? response;
       int retryCount = 0;
       const maxRetries = 3;
@@ -50,54 +50,45 @@ class AuthService {
             print(
                 '⏳ Server might be waking up, retrying... ($retryCount/$maxRetries)');
             await Future.delayed(
-                Duration(seconds: 5)); // Wait 5 seconds before retry
+                const Duration(seconds: 5)); // Wait 5 seconds before retry
           } else {
-            // Final attempt failed, will fall back to local database
+            // Final attempt failed
+            print('❌ All online login attempts failed: $e');
             break;
           }
         }
       }
 
-      if (response != null) {
-        print('📡 Server response: ${response.statusCode}');
+      if (response != null && response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final prefs = await SharedPreferences.getInstance();
 
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final prefs = await SharedPreferences.getInstance();
+        // Store token and user data
+        await prefs.setString(tokenKey, data['token']);
+        await prefs.setString(userKey, jsonEncode(data['user']));
 
-          // Store token and user data
-          await prefs.setString(tokenKey, data['token']);
-          await prefs.setString(userKey, jsonEncode(data['user']));
-
-          print('✅ Online login successful');
-          return {'success': true, 'user': User.fromJson(data['user'])};
-        } else {
-          final error = jsonDecode(response.body);
-          print('❌ Online login failed: ${error['error']}');
-          return {'success': false, 'error': error['error']};
-        }
+        print('✅ Online login successful');
+        return {'success': true, 'user': User.fromJson(data['user'])};
+      } else if (response != null) {
+        final error = jsonDecode(response.body);
+        print('❌ Online login failed: ${error['error']}');
+        return {'success': false, 'error': error['error']};
       }
+
+      // If we reach here, all online attempts failed
+      return {
+        'success': false,
+        'error':
+            'Unable to connect to server. Please check your internet connection and try again. The server might be starting up, please wait a moment and retry.'
+      };
     } catch (e) {
-      print('⚠️ Online login failed, trying local database: $e');
+      print('❌ Login error: $e');
+      return {
+        'success': false,
+        'error':
+            'Login failed. Please check your internet connection and try again.'
+      };
     }
-
-    // Fallback to local database (only for admin)
-    final result = await LocalDatabaseService.loginUser(email, password);
-
-    if (result['success']) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(userKey, jsonEncode(result['user'].toJson()));
-
-      // Add note about offline mode
-      final user = result['user'] as User;
-      if (user.isAdmin) {
-        print('✅ Admin offline login successful');
-      } else {
-        print('⚠️ Customer offline login - limited functionality');
-      }
-    }
-
-    return result;
   }
 
   static Future<Map<String, dynamic>> register(
