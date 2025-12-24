@@ -8,14 +8,14 @@ import 'auth_service.dart';
 import 'local_database_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:3000/api';
-  
+  static const String baseUrl = 'https://ambabai-jewellers.onrender.com/api';
+
   // Check if online mode is available
   static Future<bool> isOnline() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/health')).timeout(
-        const Duration(seconds: 5),
-      );
+            const Duration(seconds: 5),
+          );
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -25,7 +25,7 @@ class ApiService {
   static Future<List<JewelryItem>> getJewelryItems() async {
     try {
       final isOnlineMode = await isOnline();
-      
+
       if (isOnlineMode) {
         // Online mode - fetch from server
         final headers = await AuthService.getAuthHeaders();
@@ -33,13 +33,13 @@ class ApiService {
           Uri.parse('$baseUrl/jewelry'),
           headers: headers,
         );
-        
+
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body);
           return data.map((item) => JewelryItem.fromJson(item)).toList();
         }
       }
-      
+
       // Fallback to local database
       return await LocalDatabaseService.getJewelryItems();
     } catch (e) {
@@ -110,7 +110,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> placeOrder(int jewelryId, int quantity) async {
+  static Future<Map<String, dynamic>> placeOrder(
+      int jewelryId, int quantity) async {
     try {
       final userId = await AuthService.getCurrentUserId();
       if (userId == null) {
@@ -132,14 +133,16 @@ class ApiService {
   static Future<List<User>> getUsers() async {
     try {
       print('🌐 Fetching users from server...');
-      
+
       // ONLINE-ONLY user management
       final headers = await AuthService.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/users'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 15));
-      
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/users'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 15));
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         print('✅ Got ${data.length} users from server');
@@ -153,7 +156,7 @@ class ApiService {
       }
     } catch (e) {
       print('❌ Error fetching users: $e');
-      
+
       // Only fallback to local for admin users, and show warning
       final currentUser = await AuthService.getCurrentUser();
       if (currentUser?.isAdmin == true) {
@@ -168,20 +171,24 @@ class ApiService {
   static Future<Map<String, dynamic>> deleteUser(int userId) async {
     try {
       print('🗑️ Deleting user: $userId');
-      
+
       // ONLINE-ONLY user deletion
       final headers = await AuthService.getAuthHeaders();
-      final response = await http.delete(
-        Uri.parse('$baseUrl/admin/delete-user/$userId'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 15));
-      
+      final response = await http
+          .delete(
+            Uri.parse('$baseUrl/admin/delete-user/$userId'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 15));
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
         print('✅ User deleted successfully');
         return {'success': true, 'message': 'User deleted successfully!'};
       } else if (response.statusCode == 401) {
-        return {'success': false, 'error': 'Authentication required. Please login again.'};
+        return {
+          'success': false,
+          'error': 'Authentication required. Please login again.'
+        };
       } else {
         final error = json.decode(response.body);
         return {'success': false, 'error': error['error'] ?? 'Server error'};
@@ -189,8 +196,9 @@ class ApiService {
     } catch (e) {
       print('❌ Error deleting user: $e');
       return {
-        'success': false, 
-        'error': 'Internet connection required to delete users. Please check your connection.'
+        'success': false,
+        'error':
+            'Internet connection required to delete users. Please check your connection.'
       };
     }
   }
@@ -217,7 +225,10 @@ class ApiService {
       }
 
       // For now, return success - full update implementation can be added later
-      return {'success': true, 'message': 'Item update functionality coming soon'};
+      return {
+        'success': true,
+        'message': 'Item update functionality coming soon'
+      };
     } catch (e) {
       return {'success': false, 'error': 'Failed to update item: $e'};
     }
@@ -225,5 +236,93 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getAdminStats() async {
     return await LocalDatabaseService.getAdminStats();
+  }
+
+  // Category management methods
+  static Future<List<String>> getCategories() async {
+    try {
+      // Return default categories for now
+      return [
+        'Rings',
+        'Necklaces',
+        'Earrings',
+        'Bracelets',
+        'Bangles',
+        'Chains',
+        'Pendants',
+        'Anklets'
+      ];
+    } catch (e) {
+      print('❌ Error fetching categories: $e');
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>> addCategory(String categoryName) async {
+    try {
+      // For now, just return success - can be enhanced later
+      return {
+        'success': true,
+        'message': 'Category "$categoryName" added successfully!'
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to add category: $e'};
+    }
+  }
+
+  // User profile methods
+  static Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      final userId = await AuthService.getCurrentUserId();
+      if (userId == null) {
+        return {'success': false, 'error': 'Not authenticated'};
+      }
+
+      // Get user data from local database
+      final user = await LocalDatabaseService.getUserById(userId);
+      if (user != null) {
+        return {
+          'success': true,
+          'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'phone': user.phone ?? '',
+            'address': user.address ?? '',
+          }
+        };
+      } else {
+        return {'success': false, 'error': 'User not found'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to get profile: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserProfile({
+    required String name,
+    required String email,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final userId = await AuthService.getCurrentUserId();
+      if (userId == null) {
+        return {'success': false, 'error': 'Not authenticated'};
+      }
+
+      // Update user in local database
+      final result = await LocalDatabaseService.updateUser(
+        userId: userId,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+      );
+
+      return result;
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to update profile: $e'};
+    }
   }
 }

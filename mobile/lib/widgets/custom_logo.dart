@@ -17,7 +17,7 @@ class CustomLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logoColor = color ?? const Color(0xFFD4AF37);
-    
+
     Widget logo = CustomPaint(
       size: Size(size, size),
       painter: JewelryLogoPainter(color: logoColor),
@@ -50,32 +50,27 @@ class JewelryLogoPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    final strokePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.05;
-
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width * 0.4;
 
     // Draw diamond shape (your custom jewelry symbol)
     final path = Path();
-    
+
     // Top point
     path.moveTo(center.dx, center.dy - radius);
-    
+
     // Top right
     path.lineTo(center.dx + radius * 0.6, center.dy - radius * 0.3);
-    
+
     // Bottom right
     path.lineTo(center.dx + radius * 0.4, center.dy + radius);
-    
+
     // Bottom left
     path.lineTo(center.dx - radius * 0.4, center.dy + radius);
-    
+
     // Top left
     path.lineTo(center.dx - radius * 0.6, center.dy - radius * 0.3);
-    
+
     // Close path
     path.close();
 

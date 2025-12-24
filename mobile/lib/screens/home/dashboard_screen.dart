@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_logo.dart';
-import '../../config/app_config.dart';
 import '../auth/login_screen.dart';
 import 'category_items_screen.dart';
 import '../admin/add_jewelry_screen.dart';
@@ -176,9 +175,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Categories Section
             Text(
               'Shop by Material',
@@ -197,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Gold and Silver Buttons
             Row(
               children: [
@@ -248,7 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-            
+
             // Admin Quick Actions (if admin)
             if (_currentUser?.isAdmin == true) ...[
               const SizedBox(height: 32),
@@ -341,9 +340,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ],
-            
+
             const SizedBox(height: 24),
-            
+
             // Additional Info Cards
             Row(
               children: [
@@ -366,9 +365,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
                 Expanded(

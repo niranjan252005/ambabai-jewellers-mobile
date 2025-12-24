@@ -14,9 +14,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  
+
   bool _isLoading = true;
   bool _isEditing = false;
   Map<String, dynamic>? _userProfile;
@@ -32,7 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final profile = await ApiService.getUserProfile();
       setState(() {
         _userProfile = profile;
-        _usernameController.text = profile['username'] ?? '';
+        _usernameController.text = profile['name'] ?? profile['username'] ?? '';
+        _emailController.text = profile['email'] ?? '';
         _phoneController.text = profile['phone'] ?? '';
         _addressController.text = profile['address'] ?? '';
         _isLoading = false;
@@ -58,7 +60,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       await ApiService.updateUserProfile(
-        username: _usernameController.text,
+        name: _usernameController.text,
+        email: _emailController.text,
         phone: _phoneController.text,
         address: _addressController.text,
       );
@@ -150,7 +153,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(AppConfig.primaryColorValue), Color(0xFFB8941F)],
+                          colors: [
+                            Color(AppConfig.primaryColorValue),
+                            Color(0xFFB8941F)
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -158,7 +164,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       child: Column(
                         children: [
-                          const CustomLogo(size: 80, showBackground: true, backgroundColor: Colors.white),
+                          const CustomLogo(
+                              size: 80,
+                              showBackground: true,
+                              backgroundColor: Colors.white),
                           const SizedBox(height: 16),
                           Text(
                             _userProfile?['username'] ?? 'User',
@@ -178,13 +187,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              _userProfile?['role']?.toUpperCase() ?? 'CUSTOMER',
+                              _userProfile?['role']?.toUpperCase() ??
+                                  'CUSTOMER',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -195,9 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Profile Form
                     Card(
                       child: Padding(
@@ -207,13 +218,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Text(
                               'Personal Information',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: const Color(AppConfig.primaryColorValue),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: const Color(
+                                        AppConfig.primaryColorValue),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16),
-                            
+
                             // Username Field
                             TextFormField(
                               controller: _usernameController,
@@ -234,9 +249,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 return null;
                               },
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Email Field (Read-only)
                             TextFormField(
                               initialValue: _userProfile?['email'] ?? '',
@@ -251,9 +266,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fillColor: Colors.grey[100],
                               ),
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Phone Field
                             TextFormField(
                               controller: _phoneController,
@@ -269,9 +284,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fillColor: Colors.grey[100],
                               ),
                             ),
-                            
+
                             const SizedBox(height: 16),
-                            
+
                             // Address Field
                             TextFormField(
                               controller: _addressController,
@@ -287,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fillColor: Colors.grey[100],
                               ),
                             ),
-                            
+
                             if (_isEditing) ...[
                               const SizedBox(height: 24),
                               SizedBox(
@@ -295,16 +310,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: ElevatedButton(
                                   onPressed: _updateProfile,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(AppConfig.primaryColorValue),
+                                    backgroundColor: const Color(
+                                        AppConfig.primaryColorValue),
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
                                   child: const Text(
                                     'Update Profile',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
@@ -313,9 +332,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Account Information
                     Card(
                       child: Padding(
@@ -325,32 +344,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Text(
                               'Account Information',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: const Color(AppConfig.primaryColorValue),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: const Color(
+                                        AppConfig.primaryColorValue),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16),
-                            
-                            _buildInfoRow('Account Status', 
-                              _userProfile?['approved'] == true ? 'Approved' : 'Pending Approval',
-                              _userProfile?['approved'] == true ? Colors.green : Colors.orange,
+                            _buildInfoRow(
+                              'Account Status',
+                              _userProfile?['approved'] == true
+                                  ? 'Approved'
+                                  : 'Pending Approval',
+                              _userProfile?['approved'] == true
+                                  ? Colors.green
+                                  : Colors.orange,
                             ),
-                            _buildInfoRow('Member Since', 
+                            _buildInfoRow(
+                              'Member Since',
                               _formatDate(_userProfile?['created_at']),
                               Colors.grey[600]!,
                             ),
-                            _buildInfoRow('Account Type', 
-                              _userProfile?['role']?.toUpperCase() ?? 'CUSTOMER',
+                            _buildInfoRow(
+                              'Account Type',
+                              _userProfile?['role']?.toUpperCase() ??
+                                  'CUSTOMER',
                               const Color(AppConfig.primaryColorValue),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Shop Information
                     Card(
                       child: Padding(
@@ -360,24 +390,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             Text(
                               'Shop Information',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: const Color(AppConfig.primaryColorValue),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: const Color(
+                                        AppConfig.primaryColorValue),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 16),
-                            
-                            _buildInfoRow('Shop Name', AppConfig.shopName, Colors.grey[600]!),
-                            _buildInfoRow('Address', AppConfig.shopAddress, Colors.grey[600]!),
-                            _buildInfoRow('Phone', AppConfig.shopPhone, Colors.grey[600]!),
-                            _buildInfoRow('Email', AppConfig.shopEmail, Colors.grey[600]!),
+                            _buildInfoRow('Shop Name', AppConfig.shopName,
+                                Colors.grey[600]!),
+                            _buildInfoRow('Address', AppConfig.shopAddress,
+                                Colors.grey[600]!),
+                            _buildInfoRow('Phone', AppConfig.shopPhone,
+                                Colors.grey[600]!),
+                            _buildInfoRow('Email', AppConfig.shopEmail,
+                                Colors.grey[600]!),
                           ],
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Logout Button
                     SizedBox(
                       width: double.infinity,
@@ -393,11 +430,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: const Text(
                           'Logout',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
                   ],
                 ),

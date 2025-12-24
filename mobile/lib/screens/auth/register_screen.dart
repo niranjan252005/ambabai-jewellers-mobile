@@ -36,6 +36,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
+    // Show loading dialog with server wake-up message
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Creating your account...'),
+              const SizedBox(height: 8),
+              Text(
+                'This may take a moment if the server is starting up.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final result = await AuthService.register(
       _usernameController.text.trim(),
       _emailController.text.trim(),
@@ -46,6 +73,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _isLoading = false;
     });
+
+    // Close loading dialog
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
 
     if (result['success']) {
       if (mounted) {
@@ -72,6 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SnackBar(
             content: Text(result['error']),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -226,7 +259,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -260,11 +294,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: _isLoading ? null : _register,
                         child: _isLoading
                             ? const CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               )
                             : const Text(
                                 'Create Account',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                       ),
                     ),

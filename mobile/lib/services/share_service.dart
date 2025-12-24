@@ -1,21 +1,17 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../models/jewelry_item.dart';
-import '../widgets/custom_logo.dart';
 import 'shop_service.dart';
 import 'auth_service.dart';
 
 class ShareService {
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://ambabai-jewellers.onrender.com';
 
   /// Share jewelry item with text and image (online version)
   static Future<void> shareJewelryItem(
@@ -27,15 +23,16 @@ class ShareService {
     try {
       // Try to get online share data first
       final shareData = await _getOnlineShareData(item);
-      
+
       if (shareData != null) {
         // Online mode - share with web link and image
         await _shareOnlineItem(context, item, shareData, customMessage);
       } else {
         // Offline mode - fallback to local sharing
         final shopInfo = await ShopService.getShopInfo();
-        final shareText = await _generateShareText(item, customMessage, shopInfo);
-        
+        final shareText =
+            await _generateShareText(item, customMessage, shopInfo);
+
         if (includeImage && item.imagePath != null) {
           await _shareWithLocalImage(context, item, shareText, shopInfo);
         } else {
@@ -51,14 +48,17 @@ class ShareService {
   }
 
   /// Get online share data from server
-  static Future<Map<String, dynamic>?> _getOnlineShareData(JewelryItem item) async {
+  static Future<Map<String, dynamic>?> _getOnlineShareData(
+      JewelryItem item) async {
     try {
       final headers = await AuthService.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/jewelry/${item.id}/share'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-      
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/api/jewelry/${item.id}/share'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
@@ -76,28 +76,28 @@ class ShareService {
     String? customMessage,
   ) async {
     final buffer = StringBuffer();
-    
+
     if (customMessage != null) {
       buffer.writeln(customMessage);
       buffer.writeln();
     }
-    
+
     buffer.writeln('💎 ${item.name}');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
     buffer.writeln('💰 Price: ${item.formattedPrice}');
     buffer.writeln('📦 Category: ${item.category}');
     buffer.writeln('⚖️ Weight: ${item.formattedWeight}');
     buffer.writeln('🏷️ Material: ${item.material}');
-    
+
     if (item.description.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('📝 ${item.description}');
     }
-    
+
     buffer.writeln();
     buffer.writeln('🔗 View Details: ${shareData['shareUrl']}');
     buffer.writeln();
-    
+
     final shopInfo = shareData['shopInfo'];
     buffer.writeln('🏪 ${shopInfo['name']}');
     buffer.writeln('📞 ${shopInfo['phone']}');
@@ -105,9 +105,9 @@ class ShareService {
     buffer.writeln('📍 ${shopInfo['address']}');
     buffer.writeln();
     buffer.writeln('✨ Visit us for more exquisite jewelry!');
-    
+
     final shareText = buffer.toString();
-    
+
     // If there's an online image, download and share it
     if (shareData['imageUrl'] != null) {
       try {
@@ -116,7 +116,7 @@ class ShareService {
           final tempDir = await getTemporaryDirectory();
           final imageFile = File('${tempDir.path}/jewelry_${item.id}.jpg');
           await imageFile.writeAsBytes(imageResponse.bodyBytes);
-          
+
           await Share.shareXFiles(
             [XFile(imageFile.path)],
             text: shareText,
@@ -128,9 +128,10 @@ class ShareService {
         print('Failed to download image: $e');
       }
     }
-    
+
     // Fallback to text only
-    await Share.share(shareText, subject: '💎 ${item.name} - ${shopInfo['name']}');
+    await Share.share(shareText,
+        subject: '💎 ${item.name} - ${shopInfo['name']}');
   }
 
   /// Share jewelry item specifically to WhatsApp
@@ -142,9 +143,10 @@ class ShareService {
     try {
       final shopInfo = await ShopService.getShopInfo();
       final shareText = await _generateWhatsAppText(item, shopInfo);
-      
+
       if (item.imagePath != null) {
-        await _shareWithLocalImage(context, item, shareText, shopInfo, forWhatsApp: true);
+        await _shareWithLocalImage(context, item, shareText, shopInfo,
+            forWhatsApp: true);
       } else {
         await Share.share(
           shareText,
@@ -173,16 +175,16 @@ class ShareService {
 
       // Create beautiful card image
       final cardImage = await _createJewelryCardImage(item);
-      
+
       // Hide loading dialog
       Navigator.of(context).pop();
-      
+
       if (cardImage != null) {
         // Save image to temporary directory
         final tempDir = await getTemporaryDirectory();
         final file = File('${tempDir.path}/jewelry_card_${item.id}.png');
         await file.writeAsBytes(cardImage);
-        
+
         // Share the card image with text
         final shopInfo = await ShopService.getShopInfo();
         final shareText = await _generateCardShareText(item, shopInfo);
@@ -224,7 +226,7 @@ class ShareService {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Share options
             _buildShareOption(
               context,
@@ -236,7 +238,7 @@ class ShareService {
                 shareJewelryItem(context, item);
               },
             ),
-            
+
             _buildShareOption(
               context,
               icon: Icons.message,
@@ -248,7 +250,7 @@ class ShareService {
                 shareToWhatsApp(context, item);
               },
             ),
-            
+
             _buildShareOption(
               context,
               icon: Icons.image,
@@ -260,7 +262,7 @@ class ShareService {
                 shareJewelryCard(context, item);
               },
             ),
-            
+
             _buildShareOption(
               context,
               icon: Icons.text_fields,
@@ -271,9 +273,9 @@ class ShareService {
                 shareJewelryItem(context, item, includeImage: false);
               },
             ),
-            
+
             const SizedBox(height: 10),
-            
+
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
@@ -285,43 +287,46 @@ class ShareService {
   }
 
   /// Generate formatted share text
-  static Future<String> _generateShareText(JewelryItem item, String? customMessage, Map<String, String> shopInfo) async {
+  static Future<String> _generateShareText(JewelryItem item,
+      String? customMessage, Map<String, String> shopInfo) async {
     final buffer = StringBuffer();
-    
+
     if (customMessage != null) {
       buffer.writeln(customMessage);
       buffer.writeln();
     }
-    
+
     buffer.writeln('💎 ${item.name}');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
     buffer.writeln('💰 Price: ${item.formattedPrice}');
     buffer.writeln('📦 Category: ${item.category}');
     buffer.writeln('⚖️ Weight: ${item.formattedWeight}');
     buffer.writeln('🏷️ Material: ${item.material}');
-    
+
     if (item.brand != null) {
       buffer.writeln('🏪 Brand: ${item.brand}');
     }
-    
+
     if (item.size != null) {
       buffer.writeln('📏 Size: ${item.size}');
     }
-    
+
     if (item.hasMeltingData) {
       buffer.writeln();
       buffer.writeln('⚖️ MELTING DATA:');
       if (item.karat != null) buffer.writeln('• Karat: ${item.karat}K');
       if (item.purity != null) buffer.writeln('• Purity: ${item.purity}');
-      if (item.meltingWeight != null) buffer.writeln('• Melting Weight: ${item.formattedMeltingWeight}');
-      if (item.meltingValue != null) buffer.writeln('• Melting Value: ${item.formattedMeltingValue}');
+      if (item.meltingWeight != null)
+        buffer.writeln('• Melting Weight: ${item.formattedMeltingWeight}');
+      if (item.meltingValue != null)
+        buffer.writeln('• Melting Value: ${item.formattedMeltingValue}');
     }
-    
+
     if (item.description.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('📝 ${item.description}');
     }
-    
+
     buffer.writeln();
     buffer.writeln('🏪 ${shopInfo['name']}');
     buffer.writeln('📞 ${shopInfo['phone']}');
@@ -329,34 +334,35 @@ class ShareService {
     buffer.writeln('📍 ${shopInfo['address']}');
     buffer.writeln();
     buffer.writeln('✨ Visit us for more exquisite jewelry!');
-    
+
     return buffer.toString();
   }
 
   /// Generate WhatsApp-specific share text
-  static Future<String> _generateWhatsAppText(JewelryItem item, Map<String, String> shopInfo) async {
+  static Future<String> _generateWhatsAppText(
+      JewelryItem item, Map<String, String> shopInfo) async {
     final buffer = StringBuffer();
-    
+
     buffer.writeln('*💎 ${item.name}*');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━');
     buffer.writeln('💰 *Price:* ${item.formattedPrice}');
     buffer.writeln('📦 *Category:* ${item.category}');
     buffer.writeln('⚖️ *Weight:* ${item.formattedWeight}');
     buffer.writeln('🏷️ *Material:* ${item.material}');
-    
+
     if (item.brand != null) {
       buffer.writeln('🏪 *Brand:* ${item.brand}');
     }
-    
+
     if (item.hasMeltingData && item.karat != null) {
       buffer.writeln('💎 *Karat:* ${item.karat}K');
     }
-    
+
     if (item.description.isNotEmpty) {
       buffer.writeln();
       buffer.writeln('📝 ${item.description}');
     }
-    
+
     buffer.writeln();
     buffer.writeln('🏪 *${shopInfo['name']}*');
     buffer.writeln('📞 ${shopInfo['phone']}');
@@ -364,18 +370,19 @@ class ShareService {
     buffer.writeln('📍 ${shopInfo['address']}');
     buffer.writeln();
     buffer.writeln('✨ _Visit us for more exquisite jewelry!_');
-    
+
     return buffer.toString();
   }
 
   /// Generate card share text
-  static Future<String> _generateCardShareText(JewelryItem item, Map<String, String> shopInfo) async {
+  static Future<String> _generateCardShareText(
+      JewelryItem item, Map<String, String> shopInfo) async {
     return '💎 ${item.name} - ${item.formattedPrice}\n\n'
-           '🏪 ${shopInfo['name']}\n'
-           '📞 ${shopInfo['phone']}\n'
-           '📧 ${shopInfo['email']}\n'
-           '📍 ${shopInfo['address']}\n\n'
-           '✨ Visit us for more exquisite jewelry!';
+        '🏪 ${shopInfo['name']}\n'
+        '📞 ${shopInfo['phone']}\n'
+        '📧 ${shopInfo['email']}\n'
+        '📍 ${shopInfo['address']}\n\n'
+        '✨ Visit us for more exquisite jewelry!';
   }
 
   /// Share with local image (offline mode)
@@ -398,7 +405,7 @@ class ShareService {
           return;
         }
       }
-      
+
       // Fallback to text only
       await Share.share(text, subject: '💎 ${item.name} - ${shopInfo['name']}');
     } catch (e) {
@@ -466,7 +473,7 @@ class ShareService {
     final shopInfo = await ShopService.getShopInfo();
     final text = await _generateShareText(item, null, shopInfo);
     await Clipboard.setData(ClipboardData(text: text));
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Item details copied to clipboard!'),

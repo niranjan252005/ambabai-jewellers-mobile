@@ -24,7 +24,7 @@ class LocalDatabaseService {
   static Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
-    
+
     return await openDatabase(
       path,
       version: _databaseVersion,
@@ -122,7 +122,8 @@ class LocalDatabaseService {
     final sampleItems = [
       {
         'name': 'Diamond Engagement Ring',
-        'description': 'Beautiful 18k gold diamond engagement ring with certified diamonds',
+        'description':
+            'Beautiful 18k gold diamond engagement ring with certified diamonds',
         'price': 125000.0,
         'category': 'Rings',
         'material': 'Gold',
@@ -281,14 +282,14 @@ class LocalDatabaseService {
   }) async {
     try {
       final db = await database;
-      
+
       // Check if user already exists (case insensitive email)
       final existingUser = await db.query(
         'users',
         where: 'LOWER(email) = ? OR username = ?',
         whereArgs: [email.toLowerCase(), username],
       );
-      
+
       if (existingUser.isNotEmpty) {
         return {
           'success': false,
@@ -301,7 +302,7 @@ class LocalDatabaseService {
         // Get max admin limit from settings
         final prefs = await SharedPreferences.getInstance();
         final maxAdmins = prefs.getInt('max_admins') ?? 3;
-        
+
         final adminCount = await db.rawQuery(
           'SELECT COUNT(*) as count FROM users WHERE role = ?',
           ['admin'],
@@ -315,7 +316,7 @@ class LocalDatabaseService {
       }
 
       String hashedPassword = _hashPassword(password);
-      
+
       await db.insert('users', {
         'username': username,
         'email': email.toLowerCase(), // Store email in lowercase
@@ -326,7 +327,7 @@ class LocalDatabaseService {
 
       return {
         'success': true,
-        'message': role == 'admin' 
+        'message': role == 'admin'
             ? 'Admin account created successfully'
             : 'Account created successfully. Please wait for admin approval.',
       };
@@ -338,11 +339,12 @@ class LocalDatabaseService {
     }
   }
 
-  static Future<Map<String, dynamic>> loginUser(String email, String password) async {
+  static Future<Map<String, dynamic>> loginUser(
+      String email, String password) async {
     try {
       final db = await database;
       String hashedPassword = _hashPassword(password);
-      
+
       final result = await db.query(
         'users',
         where: 'LOWER(email) = ? AND password = ?',
@@ -357,7 +359,7 @@ class LocalDatabaseService {
       }
 
       final userData = result.first;
-      
+
       if (userData['is_approved'] == 0 && userData['role'] != 'admin') {
         return {
           'success': false,
@@ -409,15 +411,17 @@ class LocalDatabaseService {
     return result.map((item) => JewelryItem.fromJson(item)).toList();
   }
 
-  static Future<Map<String, dynamic>> addJewelryItem(Map<String, dynamic> itemData) async {
+  static Future<Map<String, dynamic>> addJewelryItem(
+      Map<String, dynamic> itemData) async {
     try {
       final db = await database;
-      
+
       // Generate SKU if not provided
       if (itemData['sku'] == null || itemData['sku'].isEmpty) {
-        itemData['sku'] = await _generateSKU(db, itemData['category'], itemData['material']);
+        itemData['sku'] =
+            await _generateSKU(db, itemData['category'], itemData['material']);
       }
-      
+
       final id = await db.insert('jewelry_items', itemData);
       return {
         'success': true,
@@ -432,14 +436,16 @@ class LocalDatabaseService {
     }
   }
 
-  static Future<String> _generateSKU(Database db, String category, String material) async {
-    String prefix = '${material.substring(0, 2).toUpperCase()}-${category.substring(0, 3).toUpperCase()}';
-    
+  static Future<String> _generateSKU(
+      Database db, String category, String material) async {
+    String prefix =
+        '${material.substring(0, 2).toUpperCase()}-${category.substring(0, 3).toUpperCase()}';
+
     final result = await db.rawQuery(
       'SELECT COUNT(*) as count FROM jewelry_items WHERE sku LIKE ?',
       ['$prefix-%'],
     );
-    
+
     int count = (result.first['count'] as int) + 1;
     return '$prefix-${count.toString().padLeft(3, '0')}';
   }
@@ -461,27 +467,28 @@ class LocalDatabaseService {
   }
 
   // Order operations
-  static Future<Map<String, dynamic>> placeOrder(int userId, int jewelryId, int quantity) async {
+  static Future<Map<String, dynamic>> placeOrder(
+      int userId, int jewelryId, int quantity) async {
     try {
       final db = await database;
-      
+
       // Get jewelry item to calculate total price
       final jewelryResult = await db.query(
         'jewelry_items',
         where: 'id = ?',
         whereArgs: [jewelryId],
       );
-      
+
       if (jewelryResult.isEmpty) {
         return {
           'success': false,
           'error': 'Jewelry item not found',
         };
       }
-      
+
       final jewelry = jewelryResult.first;
       final totalPrice = (jewelry['price'] as double) * quantity;
-      
+
       await db.insert('orders', {
         'user_id': userId,
         'jewelry_id': jewelryId,
@@ -489,7 +496,7 @@ class LocalDatabaseService {
         'total_price': totalPrice,
         'status': 'pending',
       });
-      
+
       return {
         'success': true,
         'message': 'Order placed successfully',
@@ -510,15 +517,15 @@ class LocalDatabaseService {
       JOIN jewelry_items j ON o.jewelry_id = j.id
       JOIN users u ON o.user_id = u.id
     ''';
-    
+
     List<dynamic> whereArgs = [];
     if (userId != null) {
       query += ' WHERE o.user_id = ?';
       whereArgs.add(userId);
     }
-    
+
     query += ' ORDER BY o.created_at DESC';
-    
+
     final result = await db.rawQuery(query, whereArgs);
     return result.map((order) => Order.fromJson(order)).toList();
   }
@@ -553,12 +560,16 @@ class LocalDatabaseService {
 
   static Future<Map<String, dynamic>> getAdminStats() async {
     final db = await database;
-    
-    final totalItems = await db.rawQuery('SELECT COUNT(*) as count FROM jewelry_items');
-    final totalUsers = await db.rawQuery('SELECT COUNT(*) as count FROM users WHERE role = "user"');
-    final totalOrders = await db.rawQuery('SELECT COUNT(*) as count FROM orders');
-    final pendingUsers = await db.rawQuery('SELECT COUNT(*) as count FROM users WHERE is_approved = 0');
-    
+
+    final totalItems =
+        await db.rawQuery('SELECT COUNT(*) as count FROM jewelry_items');
+    final totalUsers = await db
+        .rawQuery('SELECT COUNT(*) as count FROM users WHERE role = "user"');
+    final totalOrders =
+        await db.rawQuery('SELECT COUNT(*) as count FROM orders');
+    final pendingUsers = await db
+        .rawQuery('SELECT COUNT(*) as count FROM users WHERE is_approved = 0');
+
     return {
       'totalItems': totalItems.first['count'],
       'totalUsers': totalUsers.first['count'],
@@ -573,17 +584,72 @@ class LocalDatabaseService {
       await _database!.close();
       _database = null;
     }
-    
+
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
-    
+
     // Delete the database file
     final file = File(path);
     if (await file.exists()) {
       await file.delete();
     }
-    
+
     // Reinitialize database
     _database = await _initDatabase();
+  }
+
+  // Additional user methods
+  static Future<User?> getUserById(int userId) async {
+    try {
+      final db = await database;
+      final result = await db.query(
+        'users',
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+
+      if (result.isNotEmpty) {
+        return User.fromJson(result.first);
+      }
+      return null;
+    } catch (e) {
+      print('❌ Error getting user by ID: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUser({
+    required int userId,
+    required String name,
+    required String email,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final db = await database;
+
+      final updateData = {
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final rowsAffected = await db.update(
+        'users',
+        updateData,
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+
+      if (rowsAffected > 0) {
+        return {'success': true, 'message': 'Profile updated successfully!'};
+      } else {
+        return {'success': false, 'error': 'User not found'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to update user: $e'};
+    }
   }
 }
