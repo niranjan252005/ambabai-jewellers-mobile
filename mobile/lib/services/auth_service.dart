@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
-import 'local_database_service.dart';
 
 class AuthService {
   static const String userKey = 'user_data';

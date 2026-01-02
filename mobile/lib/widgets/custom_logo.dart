@@ -5,6 +5,7 @@ class CustomLogo extends StatelessWidget {
   final Color? color;
   final bool showBackground;
   final Color? backgroundColor;
+  final bool useImageLogo;
 
   const CustomLogo({
     super.key,
@@ -12,23 +13,44 @@ class CustomLogo extends StatelessWidget {
     this.color,
     this.showBackground = false,
     this.backgroundColor,
+    this.useImageLogo = true, // Default to using image logo
   });
 
   @override
   Widget build(BuildContext context) {
     final logoColor = color ?? const Color(0xFFD4AF37);
 
-    Widget logo = CustomPaint(
-      size: Size(size, size),
-      painter: JewelryLogoPainter(color: logoColor),
-    );
+    Widget logo;
+
+    if (useImageLogo) {
+      // Use your shop logo image
+      logo = Image.asset(
+        'assets/images/logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to custom drawn logo if image fails to load
+          return CustomPaint(
+            size: Size(size, size),
+            painter: JewelryLogoPainter(color: logoColor),
+          );
+        },
+      );
+    } else {
+      // Use custom drawn diamond logo
+      logo = CustomPaint(
+        size: Size(size, size),
+        painter: JewelryLogoPainter(color: logoColor),
+      );
+    }
 
     if (showBackground) {
       logo = Container(
         width: size + 16,
         height: size + 16,
         decoration: BoxDecoration(
-          color: backgroundColor ?? logoColor.withOpacity(0.1),
+          color: backgroundColor ?? logoColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular((size + 16) / 2),
         ),
         child: Center(child: logo),
@@ -79,7 +101,7 @@ class JewelryLogoPainter extends CustomPainter {
 
     // Draw inner lines for facets
     final facetPaint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.width * 0.02;
 
@@ -106,7 +128,7 @@ class JewelryLogoPainter extends CustomPainter {
 
     // Add a small sparkle effect
     final sparklePaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
     // Top sparkle
@@ -179,6 +201,45 @@ class BrandName extends StatelessWidget {
         fontWeight: fontWeight,
         letterSpacing: 0.5,
       ),
+    );
+  }
+}
+
+// Shop Logo Widget - Uses your actual shop logo image
+class ShopLogo extends StatelessWidget {
+  final double size;
+  final BoxFit fit;
+
+  const ShopLogo({
+    super.key,
+    this.size = 100,
+    this.fit = BoxFit.contain,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/logo.png',
+      width: size,
+      height: size,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) {
+        // Fallback to text logo if image fails
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(size / 2),
+          ),
+          child: Center(
+            child: TextLogo(
+              fontSize: size * 0.3,
+              color: const Color(0xFFD4AF37),
+            ),
+          ),
+        );
+      },
     );
   }
 }

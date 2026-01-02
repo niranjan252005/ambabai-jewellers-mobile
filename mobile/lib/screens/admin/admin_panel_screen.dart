@@ -4,7 +4,6 @@ import 'add_jewelry_screen.dart';
 import 'manage_users_screen.dart';
 import 'manage_orders_screen.dart';
 import 'admin_settings_screen.dart';
-import '../debug/debug_screen.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -101,20 +100,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const AdminSettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildAdminCard(
-                    context,
-                    title: 'Debug Users',
-                    subtitle: 'Test user approval system',
-                    icon: Icons.bug_report,
-                    color: Colors.red,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const DebugScreen(),
                         ),
                       );
                     },
